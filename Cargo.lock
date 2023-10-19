@@ -2389,9 +2389,9 @@ dependencies = [
 
 [[package]]
 name = "timsrust"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1af6e7d938a8698867d4214eec30d4db8e0c6e04e8f9ae335cb77e14be357145"
+checksum = "9cd10ccdbfdf88c3ce67bdcd47bd1259c3b5496a574032d8fdea2f293f0c407c"
 dependencies = [
  "bytemuck",
  "byteorder",
