@@ -340,6 +340,7 @@ pub struct Theoretical {
     pub fragment_mz: f32,
 }
 
+#[derive(Default)]
 pub struct IndexedDatabase {
     pub peptides: Vec<Peptide>,
     pub fragments: Vec<Theoretical>,
