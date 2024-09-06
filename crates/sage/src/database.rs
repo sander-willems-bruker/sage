@@ -84,6 +84,10 @@ pub struct Builder {
     pub generate_decoys: Option<bool>,
     /// Path to fasta database
     pub fasta: Option<String>,
+    /// Number of sequences to handle simultaneously when pre-filtering the db
+    pub prefilter_chunk_size: Option<usize>,
+    /// Pre-filter the database to minimize memory usage
+    pub prefilter: Option<bool>,
 }
 
 impl Builder {
@@ -102,6 +106,8 @@ impl Builder {
             max_variable_mods: self.max_variable_mods.map(|x| x.max(1)).unwrap_or(2),
             generate_decoys: self.generate_decoys.unwrap_or(true),
             fasta: self.fasta.expect("A fasta file must be provided!"),
+            prefilter_chunk_size: self.prefilter_chunk_size.unwrap_or(0),
+            prefilter: self.prefilter.unwrap_or(false),
         }
     }
 
@@ -124,6 +130,8 @@ pub struct Parameters {
     pub decoy_tag: String,
     pub generate_decoys: bool,
     pub fasta: String,
+    pub prefilter_chunk_size: usize,
+    pub prefilter: bool,
 }
 
 impl Parameters {
@@ -609,6 +617,8 @@ mod test {
             decoy_tag: "rev_".into(),
             generate_decoys: false,
             fasta: "none".into(),
+            prefilter: false,
+            prefilter_chunk_size: 0,
         };
 
         let peptides = params.digest(&fasta);
