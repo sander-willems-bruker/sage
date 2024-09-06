@@ -209,6 +209,10 @@ impl Parameters {
     // pub fn build(self) -> Result<IndexedDatabase, Box<dyn std::error::Error + Send + Sync + 'static>> {
     pub fn build(self, fasta: Fasta) -> IndexedDatabase {
         let target_decoys = self.digest(&fasta);
+        self.build_from_peptides(target_decoys)
+    }
+
+    pub fn build_from_peptides(self, target_decoys: Vec<Peptide>) -> IndexedDatabase {
         log::trace!("generating fragments");
 
         // Finally, perform in silico digest for our target sequences
