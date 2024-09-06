@@ -193,6 +193,9 @@ impl Parameters {
                 && remove.cterm == keep.cterm
             {
                 keep.proteins.extend(remove.proteins.iter().cloned());
+                // When merging peptides from different Fastas,
+                // decoys in one fasta might be targets in another
+                keep.decoy &= remove.decoy;
                 true
             } else {
                 false
