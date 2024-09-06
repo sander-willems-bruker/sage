@@ -113,8 +113,8 @@ impl Runner {
     fn search_processed_spectra(
         &self,
         scorer: &Scorer,
-        spectra: Vec<ProcessedSpectrum>,
-    ) -> SageResults {
+        spectra: &Vec<ProcessedSpectrum>,
+    ) -> Vec<Feature> {
         use std::sync::atomic::{AtomicUsize, Ordering};
         let counter = AtomicUsize::new(0);
         let start = Instant::now();
@@ -139,7 +139,14 @@ impl Runner {
         let prev = counter.load(Ordering::Relaxed);
         let rate = prev * 1000 / (duration + 1);
         log::info!("- search:  {:8} ms ({} spectra/s)", duration, rate);
+        features
+    }
 
+    fn complete_features(
+        &self,
+        spectra: Vec<ProcessedSpectrum>,
+        features: Vec<Feature>,
+    ) -> SageResults {
         let quant = self
             .parameters
             .quant
@@ -169,6 +176,17 @@ impl Runner {
         chunk_idx: usize,
         batch_size: usize,
     ) -> SageResults {
+        let spectra = self.read_processed_spectra(chunk, chunk_idx, batch_size);
+        let features = self.search_processed_spectra(scorer, &spectra);
+        self.complete_features(spectra, features)
+    }
+
+    fn read_processed_spectra(
+        &self,
+        chunk: &[String],
+        chunk_idx: usize,
+        batch_size: usize,
+    ) -> Vec<ProcessedSpectrum> {
         // Read all of the spectra at once - this can help prevent memory over-consumption issues
         info!(
             "processing files {} .. {} ",
@@ -240,7 +258,7 @@ impl Runner {
         let io_time = Instant::now() - start;
         info!("- file IO: {:8} ms", io_time.as_millis());
 
-        self.search_processed_spectra(scorer, spectra)
+        spectra
     }
 
     pub fn batch_files(&self, scorer: &Scorer, batch_size: usize) -> SageResults {
