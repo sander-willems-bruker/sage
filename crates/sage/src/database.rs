@@ -172,6 +172,12 @@ impl Parameters {
             })
             .collect::<Vec<_>>();
 
+        Self::reorder_peptides(&mut target_decoys);
+
+        target_decoys
+    }
+
+    pub fn reorder_peptides(target_decoys: &mut Vec<Peptide>) {
         log::trace!("sorting and deduplicating peptides");
 
         // This is equivalent to a stable sort
