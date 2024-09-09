@@ -88,6 +88,8 @@ pub struct Builder {
     pub prefilter_chunk_size: Option<usize>,
     /// Pre-filter the database to minimize memory usage
     pub prefilter: Option<bool>,
+    /// Pre-filter the database with a minimal amount of memory at the cost of speed
+    pub prefilter_low_memory: Option<bool>,
 }
 
 impl Builder {
@@ -108,6 +110,7 @@ impl Builder {
             fasta: self.fasta.expect("A fasta file must be provided!"),
             prefilter_chunk_size: self.prefilter_chunk_size.unwrap_or(0),
             prefilter: self.prefilter.unwrap_or(false),
+            prefilter_low_memory: self.prefilter_low_memory.unwrap_or(true),
         }
     }
 
@@ -132,6 +135,7 @@ pub struct Parameters {
     pub fasta: String,
     pub prefilter_chunk_size: usize,
     pub prefilter: bool,
+    pub prefilter_low_memory: bool,
 }
 
 impl Parameters {
@@ -620,6 +624,7 @@ mod test {
             fasta: "none".into(),
             prefilter: false,
             prefilter_chunk_size: 0,
+            prefilter_low_memory: true,
         };
 
         let peptides = params.digest(&fasta);

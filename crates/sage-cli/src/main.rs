@@ -134,7 +134,7 @@ impl Runner {
                     override_precursor_charge: self.parameters.override_precursor_charge,
                     max_fragment_charge: self.parameters.max_fragment_charge,
                     chimera: self.parameters.chimera,
-                    report_psms: self.parameters.report_psms,
+                    report_psms: self.parameters.report_psms + 1,
                     wide_window: self.parameters.wide_window,
                     annotate_matches: self.parameters.annotate_matches,
                 };
@@ -192,7 +192,9 @@ impl Runner {
                 }
                 x
             })
-            .flat_map(|spec| scorer.quick_score(spec))
+            .flat_map(|spec| {
+                scorer.quick_score(spec, self.parameters.database.prefilter_low_memory)
+            })
             .collect();
 
         let duration = Instant::now().duration_since(start).as_millis() as usize;

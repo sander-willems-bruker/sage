@@ -209,7 +209,11 @@ fn max_fragment_charge(max_fragment_charge: Option<u8>, precursor_charge: u8) ->
 }
 
 impl<'db> Scorer<'db> {
-    pub fn quick_score(&self, query: &ProcessedSpectrum) -> Vec<PeptideIx> {
+    pub fn quick_score(
+        &self,
+        query: &ProcessedSpectrum,
+        prefilter_low_memory: bool,
+    ) -> Vec<PeptideIx> {
         assert_eq!(
             query.level, 2,
             "internal bug, trying to score a non-MS2 scan!"
@@ -218,11 +222,30 @@ impl<'db> Scorer<'db> {
             panic!("missing MS1 precursor for {}", query.id);
         });
         let hits = self.initial_hits(&query, precursor);
+
+        if prefilter_low_memory {
+            let mut score_vector = hits
+                .preliminary
+                .iter()
+                .filter(|score| score.peptide != PeptideIx::default())
+                .map(|pre| self.score_candidate(query, pre))
+                .filter(|s| (s.0.matched_b + s.0.matched_y) >= self.min_matched_peaks)
+                .collect::<Vec<_>>();
+
+            score_vector.sort_by(|a, b| b.0.hyperscore.total_cmp(&a.0.hyperscore));
+            score_vector
+                .iter()
+                .take(self.report_psms.min(score_vector.len()))
+                .map(|x| x.0.peptide)
+                .filter(|&peptide| peptide != PeptideIx::default())
+                .collect()
+        } else {
         hits.preliminary
             .iter()
             .map(|x| x.peptide)
             .filter(|&peptide| peptide != PeptideIx::default())
             .collect()
+        }
     }
 
     pub fn score(&self, query: &ProcessedSpectrum) -> Vec<Feature> {
