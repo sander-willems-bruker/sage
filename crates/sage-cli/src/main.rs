@@ -351,7 +351,11 @@ impl Runner {
                         path_lower.ends_with(ext)
                     }
                 }) {
-                    sage_cloudpath::util::read_tdf(path, file_id)
+                    sage_cloudpath::util::read_tdf(
+                        path,
+                        file_id,
+                        self.parameters.bruker_spectrum_processor,
+                    )
                 } else {
                     sage_cloudpath::util::read_mzml(path, file_id, sn)
                 };
