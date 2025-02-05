@@ -27,6 +27,7 @@ pub struct Runner {
 
 impl Runner {
     pub fn new(parameters: Search, parallel: usize) -> anyhow::Result<Self> {
+        let mut parameters = parameters.clone();
         let start = Instant::now();
         let fasta = sage_cloudpath::util::read_fasta(
             &parameters.database.fasta,
@@ -43,13 +44,26 @@ impl Runner {
         let database = match parameters.database.prefilter {
             false => parameters.database.clone().build(fasta),
             true => {
-                let mini_runner = Self {
-                    database: IndexedDatabase::default(),
-                    parameters: parameters.clone(),
-                    start,
-                };
-                let peptides = mini_runner.prefilter_peptides(parallel, fasta);
-                parameters.database.clone().build_from_peptides(peptides)
+                parameters
+                    .database
+                    .auto_calculate_prefilter_chunk_size(&fasta);
+                if parameters.database.prefilter_chunk_size >= fasta.targets.len() {
+                    parameters.database.clone().build(fasta)
+                } else {
+                    info!(
+                        "using {} db chunks of size {}",
+                        (fasta.targets.len() + parameters.database.prefilter_chunk_size - 1)
+                            / parameters.database.prefilter_chunk_size,
+                        parameters.database.prefilter_chunk_size,
+                    );
+                    let mini_runner = Self {
+                        database: IndexedDatabase::default(),
+                        parameters: parameters.clone(),
+                        start,
+                    };
+                    let peptides = mini_runner.prefilter_peptides(parallel, fasta);
+                    parameters.database.clone().build_from_peptides(peptides)
+                }
             }
         };
 

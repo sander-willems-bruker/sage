@@ -139,6 +139,26 @@ pub struct Parameters {
 }
 
 impl Parameters {
+    pub fn auto_calculate_prefilter_chunk_size(&mut self, fasta: &Fasta) {
+        const MAX_PEPS_PER_CHUNK: usize = 10_000_000;
+        self.prefilter_chunk_size = match self.prefilter_chunk_size {
+            0 => {
+                let enzyme = self.enzyme.clone().into();
+                let total_unmodified_pep_count: usize = fasta.digest(&enzyme).len();
+                let mod_count_estimate =
+                    (self.variable_mods.len() + 1) * (1 << self.max_variable_mods);
+                let chunk_count =
+                    mod_count_estimate * total_unmodified_pep_count / MAX_PEPS_PER_CHUNK;
+                if chunk_count == 0 {
+                    fasta.targets.len()
+                } else {
+                    fasta.targets.len() / chunk_count
+                }
+            }
+            x => x,
+        };
+    }
+
     pub fn digest(&self, fasta: &Fasta) -> Vec<Peptide> {
         log::trace!("digesting fasta");
         let enzyme = self.enzyme.clone().into();
