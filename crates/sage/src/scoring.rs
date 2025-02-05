@@ -262,7 +262,7 @@ impl<'db> Scorer<'db> {
                 .preliminary
                 .iter()
                 .filter_map(|pre| {
-                    if pre.peptide != PeptideIx::default() {
+                    if pre.peptide == PeptideIx::default() {
                         return None;
                     }
                     let (score, _) = self.score_candidate(query, pre);
@@ -272,7 +272,7 @@ impl<'db> Scorer<'db> {
                     Some(score)
                 })
                 .collect::<Vec<_>>();
-            let k = self.report_psms.min(score_vector.len());
+            let k = self.report_psms.min(score_vector.len()) + 1;
             bounded_min_heapify(&mut score_vector, k);
             score_vector.iter().map(|x| x.peptide).collect()
         } else {
